@@ -1,0 +1,14 @@
+a{color:#FFF}
+a:hover{text-decoration: none;}
+
+/*清除浮动代码*/ 
+.clearfix:after { 
+    content:"\200B"; 
+    display:block; 
+    height:0; 
+    clear:both; 
+}
+
+ul{
+	li{list-style-type: none!important;}
+}
