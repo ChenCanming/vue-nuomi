@@ -55,7 +55,7 @@ import { co } from 'co';
  			}
  		},
  		ready () {
- 			console.log(this.catId);
+ 			// console.log(this.catId);
  		},
 		data () {
 			return {
@@ -73,8 +73,9 @@ import { co } from 'co';
 					this.$router.go({
 						name: 'search',
 						params: {
-							deals: this.search,
-							catId: this.catId
+							keyword: this.search,
+							catId: this.catId,
+							cityId: 100010000
 						}
 					})
 				}else{

@@ -4,34 +4,16 @@
 	</div>
 	<div id="warp" v-if="!$loadingRouteData">
 		<!-- 顶部开始 -->
-		<header>
-			<!-- 地区开始 -->
-			<a href="###" class="city_link">
-				<span class="city_name">
-					深圳
-				</span>
-				<i class="city_icon"></i>
-			</a>
-			<!-- 地区结束 -->
-			<span class="title">
-				团购网
-			</span>
-			<!-- 用户登录开始 -->
-			<a href="###" class="user_link">
-				<span class="user_name">我的</span>
-				<i class="user_icon"></i>
-			</a>
-			<!-- 用户登录结束 -->
-		</header>
+		<v-header :city-name="cityName"></v-header>
 		<!-- 顶部结束 -->
 		<!-- 搜索框开始 -->
-		<!-- <div id="search_warp">
+		<div id="search_warp">
 			<form>
-				<input type="text" class="search" placeholder="搜索商家，分类，地点">
+				<input type="text" class="search" placeholder="搜索商家，分类，地点" v-model="search" @keyup.enter="submit">
+				<span class="search_icon"></span>
 			</form>
-		</div> -->
+		</div>
 		<!-- 搜索框结束 -->
-		<search top="50px"></search>
 		<!-- 分类开始 -->
 		<nav> 
 			<ul>
@@ -48,11 +30,11 @@
 		<!-- 分类结束 -->
 		<div class="love_header">
 				<span class="love_header_title">猜你喜欢</span>
-				<span class="love_header_more">全部团购></span>
+				<span class="love_header_more" v-link="{ name: 'list', params:{ cityId: 100010000} }">全部团购></span>
 		</div>
 		<loves :loves="loves"></loves>
+		<back-top></back-top>
 	</div>
-	 <actionsheet :show.sync="show1" :menus="menus1" @on-click-menu="click"></actionsheet>
 </template>
 
 <style lang="scss" scoped>
@@ -64,48 +46,7 @@
 	%font_color{
 		color: #fff;
 	}
-	/*== 头部样式开始 ==*/
-	header{
-		width:100%;
-		height:px2rem(70px);
-		line-height: px2rem(70px);
-		background: #FF4683;
-		text-align: center;
-		font-size: px2rem(18px);
-		.city_link{
-			float:left;
-			width:px2rem(70px);
-			height: 100%;
-			@extend %font_color;
-		}
-		.title{
-			font-size: px2rem(26px);
-			font-weight: bold;
-			@extend %font_color;
-		}
-		.user_link{
-			float: right;
-			width: px2rem(60px);
-			height: 100%;
-			margin-right: px2rem(14px);
-			position: relative;
-			.user_name{
-				margin-left: px2rem(15px);
-			}
-			.user_icon{
-				position: absolute;
-				top: 50%;
-				left: 0;
-				width: px2rem(30px);
-				height: px2rem(20px);
-				margin-top: px2rem(-10px);
-				background: url(../assets/images/user.png) no-repeat 0 0;
-				background-size: contain;
-				// background:blue;
-			}
-		}
-	}
-	/*== 头部样式结束 ==*/
+	
 
 	/*== 搜索框样式开始 ==*/
 	#search_warp{
@@ -114,13 +55,24 @@
 		height: px2rem(70px);
 		background: #eeeeee;
 		padding:0 px2rem(52px) 0 px2rem(15px);
+		position: relative;
 		.search{
 			width: 100%;
 			height: px2rem(45px);
 			margin-top: px2rem(10px);
 			border:0;
 			border-radius: px2rem(20px);
-			padding-left: px2rem(15px);
+			padding-left: px2rem(40px);
+		}
+		.search_icon{
+			position: absolute;
+			top: 50%;
+			left: px2rem(20px);
+			width: px2rem(30px);
+			height: px2rem(30px);
+			margin-top: px2rem(-15px);
+			background: url(../assets/images/search.png) no-repeat 0 0;
+			background-size: contain;
 		}
 	}
 	/*== 搜索框样式结束 ==*/
@@ -182,6 +134,7 @@
 			width: 100%;
 			height: px2rem(50px);
 			line-height: px2rem(50px);
+			padding: 0 px2rem(10px) 0 px2rem(10px);
 			.love_header_title{
 				// @include font-dpr(16px);
 				font-size: px2rem(26px);
@@ -195,11 +148,11 @@
 </style>
 
 <script>
-// import Api from '../../api/api.js';
 import { getIndex } from '../../api/generatorApi.js';
+import VHeader from './header';
 import Loves from './Loves';
 import Loading from '../components/Loading';
-import { Search,Actionsheet } from 'vux/src/components/'
+import BackTop from '../components/BackTop';
 //加载co模块
 import { co } from 'co';
 export default {
@@ -209,11 +162,14 @@ export default {
   data () {
   	return {
   		categories: null,
-  		loves: []
+  		loves: [],
+  		search: '',
+  		cityId: '',
+  		cityName: ''
   	}
   },
   components: {
-    Loves,Loading,Search,Actionsheet
+    VHeader,Loves,Loading,BackTop
   },
   //组件路由控制
   route: {
@@ -230,14 +186,32 @@ export default {
 	    
 	    // 第二种方法 (好用)
 	    // 采用生成器函数和co模块来处理异步流程
-		co(getIndex.call(this,transition));
+
+	    if(this.$route.params.cityName === ':cityName'){
+	    	this.cityName= '全部城市';
+	    }else{
+	    	this.cityName= this.$route.params.cityName;
+	    }
+		co(getIndex.call(this,transition,{ cityId: this.$route.params.cityId }));
 
   	}
   },
   methods: {
-  	click (key) {
-      console.log(key)
-    }
+  	submit () {
+				// console.log(this.search);
+				if(this.search){
+					this.$router.go({
+						name: 'search',
+						params: {
+							keyword: this.search,
+							catId: 326,
+							cityId: this.$route.params.cityId
+						}
+					})
+				}else{
+					alert('不能为空')
+				}
+			}
   }
 }
 </script>

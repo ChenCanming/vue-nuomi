@@ -3,11 +3,13 @@
 		<loading></loading>
 	</div>
 	<div id="detail" v-if="deal" v-if="!$loadingRouteData">
-		<x-header :left-options="{showBack: true,backText: '返回'}" style="background:#666">
+		<!-- <x-header :left-options="{showBack: true,backText: '返回'}" style="background:#666">
 			<span class="home" v-link="{name:'home'}">首页</span>
-		</x-header>
+		</x-header> -->
+		<x-header></x-header>
 		<div class="detail_header">
 			<img :src="deal.image">
+			<div class="buy_details" v-link="{name: 'imgtext',params:{id:$route.params.id}}">点击查看图文详情</div>
 		</div>
 		<!-- 团单详情主体开始 -->
 		<div class="detail_body">
@@ -31,7 +33,7 @@
 				<span class="sale_mianyuyue">
 					<i class="sale_mianyuyue_icon"></i>
 					<!-- 判断是否需要预约 -->
-					<span class="sale_mianyuyue_title" v-if="reservationRequired">免预约</span>
+					<span class="sale_mianyuyue_title" v-if="deal.is_reservation_required">免预约</span>
 					<span class="sale_mianyuyue_title" v-else>需要预约</span>
 				</span>
 			</div>
@@ -103,23 +105,8 @@
 			
 		</div>	
 		<!-- 团单详情主体结束 -->
-
-		<!-- 团单详情固定底部开始 -->
-		<div class="detail_footer">
-			<span class="detail_price">
-				<span class="promotion_price">
-				<span class="promotion_price_sm">￥</span>{{ deal.promotion_price/100 }}</span>
-				<del class="market_price">{{ deal.market_price/100 }}</del>
-			</span>
-			<span class="qiang_gou" @click="alert">
-				立即抢购
-			</span>
-		</div>	
-		<!-- 团单详情固定底部结束 -->
-		<alert :show.sync="showAlert" title="抱歉" button-text="返回页面">
-		  <p style="text-align:center;">立即抢购暂不开放</p>
-		</alert>
-		
+		<detail-footer :deal="deal"></detail-footer>
+		<back-top></back-top>
 	</div>
 </template>
 
@@ -137,11 +124,23 @@
 	//头部
 	.detail_header{
 		width: 100%;
-		height: px2rem(330px);
+		height: px2rem(350px);
 		position: relative;
 		img{
 			width: 100%;
 			height: 100%;
+		}
+		.buy_details{
+			width: 100%;
+			height: px2rem(50px);
+			line-height: px2rem(50px);
+			text-align: center;
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			background: rgba(0,0,0,.3);
+			color: #fff;
+			font-size: px2rem(18px);
 		}
 	}
 	//内容主体
@@ -161,7 +160,7 @@
 		//小标题
 		.detail_desc{
 			font-size: px2rem(10px);
-			color: #666;
+			color: #88888d;
 			padding: px2rem(10px);
 			border-bottom: 1px solid #e0e0e0;
 		}
@@ -227,7 +226,8 @@
 			.comment{
 				position: absolute;
 				right:0;
-				color: #666
+				color: #666;
+				font-size: px2rem(16px);
 			}
 		}
 		
@@ -404,11 +404,14 @@
 </style>
 
 <script>
-// import Api from '../../api/api.js';
 import { getDetail } from '../../api/generatorApi.js';
 import Loading from '../components/Loading';
-import {Rater,Alert,Dialog,XHeader} from 'vux/src/components/';
-import { co } from 'co';
+import Rater from '../components/Rater';
+import XHeader from '../components/XHeader';
+import Alert from '../components/Alert';
+import BackTop from '../components/BackTop';
+import DetailFooter from './DetailFooter';
+import co from 'co';
 export default {
 	ready () {
 		
@@ -422,91 +425,14 @@ export default {
 			shops: null,
 			rater: Math.floor(this.$route.params.score*10)/10,
 			showAlert: false,
-			reservationRequired: this.$route.params.reservationRequired//是否支持预约
+			// reservationRequired: this.$route.params.reservationRequired//是否支持预约
 		}
 	},
 	components: {
-		Loading,Rater,Alert,Dialog,XHeader
-	},
-	methods: {
-		alert () {
-			this.showAlert= true
-		}
+		Loading,Rater,XHeader,Alert,BackTop,DetailFooter
 	},
 	route: {
 		data (transition) {
-			//第一种方法
-			/*var self= this
-			Api.getDetail(this).then(function(data){
-				// console.log(data.detailTips);
-				self.deal= data.deal;
-				self.detailTaoCan= data.detailTaoCan;
-				// self.detailTips= data.detailTips;
-				self.detailTuiJian= data.detailTuiJian;
-
-				// 消费提示有一些类名下的团单没有，做一下相应的处理
-				// 无语了，api返回的数据居然有一些不一样，。。。。。。。
-				if(data.detailTips.show === null){
-					self.detailTips= null;
-				}else{
-					self.detailTips= data.detailTips;
-				}
-				//所有数据处理完毕，执行下一步
-				transition.next();
-			})*/
-
-			//第二种方法（一个小问题，点击为你推荐的商品时不显示loading）
-			// 格式：return { 数据属性：值  }
-			// 在 Promise中返回一个对象，属性与数据的属性一一对应即可
-			// 当在钩子函数里return 一个promise时，系统会自动调用transition.next();
-			// 如果重复设置 一个 {} 对象 有未知错误（数据解析有问题）【暂时不清楚原因】
- 			// {
-			// 	tt: {
-			// 		
-			// 	
-			// 	}
-			// }
-			// 
-			// return Api.getDetail(this);
-			 
-			//第三种方法
-			//
-			// co(function* () {
-			// 	let deals= yield this.$http.get( 'http://apis.baidu.com/baidunuomi/openapi/dealdetail?deal_id='+this.$route.params.id,{
-			// 		headers: {
-			// 			'apikey': '3d2bc7f8b79698ac42d48aa13bd4e135'
-			// 		}
-			// 	});
-				
-			// 	let cityIds= deals.body.deal.city_ids[0];
-			// 	let catId= deals.body.deal.cat_id;
-			// 	let subcatIds= deals.body.deal.subcat_ids;	
-			// 	subcatIds= subcatIds.join(',');				
-			// 	let taocan= deals.body.deal.buy_contents_json && JSON.parse(deals.body.deal.buy_contents_json).group_content;
-			// 	//因为糯米api的数据问题，做一下相应的处理
-			// 	if(Object.prototype.toString.call(taocan) === "[object Array]"){
-			// 		taocan.forEach(function(item,index){
-			// 			if(item.group_content != undefined){
-			// 				taocan= null;
-			// 			}
-			// 		});
-			// 	}
-
-			// 	//根据当前分类获取相关数据
-			// 	let detailTuiJian= yield this.$http.get('http://apis.baidu.com/baidunuomi/openapi/searchdeals?city_id='+ cityIds +'&cat_ids='+ catId +'&subcat_ids='+ subcatIds +'&page=1&page_size=10',{
-			// 				headers: {
-			// 					'apikey': '3d2bc7f8b79698ac42d48aa13bd4e135'
-			// 				}
-			// 			});
-			// 	this.deal= deals.body.deal;
-			// 	this.detailTips= JSON.parse(deals.body.deal.consumer_tips_json);
-			// 	this.detailTuiJian= detailTuiJian.body.data.deals;
-			// 	this.detailTaoCan= taocan;
-			// 	transition.next();
-
-
-			// }.bind(this))
-			// 这种形式 是一个表达式 fn.call()；所有co模块可以调用
 			co(getDetail.call(this,transition));
 		}
 	}

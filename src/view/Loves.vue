@@ -1,8 +1,8 @@
 <template>
-	<!-- 猜你喜欢开始 -->
+	<!-- 团单列表开始 -->
 		<div id="love_warp" v-if="loves">
 			<ul class="love_list">
-				<li class="love_item" v-for="love in loves" v-link="{ name: 'dealdetail',params:{id:love.deal_id,score:love.score,commentNum:love.comment_num,reservationRequired:love.is_reservation_required}}">
+				<li class="love_item" v-for="love in loves" v-link="{ name: 'dealdetail',params:{id:love.deal_id,score:love.score,commentNum:love.comment_num}}">
 					<div class="love_item_imgtext">
 						<a href="###" class="love_item_imgtext_pic">
 							<img :src="love.image" >
@@ -20,15 +20,15 @@
 						</div>
 					</div>
 				</li>
-				<li class="all">查看全部团购</li>
+				<li class="all" v-link="{ name: 'list', params:{ cityId: 100010000} }">查看全部团购</li>
 			</ul>
 		</div>
-		<!-- 猜你喜欢结束 -->
+		<!-- 团单列表结束 -->
 </template>
 
 <style lang="scss" scoped>
 @import '../assets/styles/common/px2rem.scss';
-	/* == 猜你喜欢样式开始 == */
+	/* == 团单列表样式开始 == */
 	#love_warp{
 		box-sizing: border-box;
 		width: 100%;
@@ -101,7 +101,7 @@
 			}
 		}
 	}
-	/* == 猜你喜欢样式结束 == */
+	/* == 团单列表样式结束 == */
 	.all{
 		height: px2rem(70px);
 		line-height: px2rem(70px);
@@ -131,10 +131,10 @@ import { co } from 'co';
 		},
 		route: {
 			data () {
-				console.log(this.$route.params.deals);
-				if(this.$route.params.deals){
+				// console.log(this.$route.params.keyword);
+				if(this.$route.params.keyword){
 					co(function* () {
-						let search= yield this.$http.get('http://apis.baidu.com/baidunuomi/openapi/searchdeals?city_id=100010000&cat_ids='+ this.$route.params.catId +'&keyword='+ this.$route.params.deals +'&page=1&page_size=10',{
+						let search= yield this.$http.get('http://apis.baidu.com/baidunuomi/openapi/searchdeals?city_id='+ this.$route.params.cityId +'&cat_ids='+ this.$route.params.catId +'&keyword='+ this.$route.params.keyword +'&page=1&page_size=10',{
 						      headers:{
 						          'apikey': '3d2bc7f8b79698ac42d48aa13bd4e135'
 						      }

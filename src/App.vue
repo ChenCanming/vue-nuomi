@@ -8,7 +8,7 @@
 <style lang="scss">
     //公用样式
 	@import './assets/styles/common/base.scss';
-	@import '~vux/dist/vux.css';
+	// @import '~vux/dist/vux.css';
 </style>
 
 <script>
